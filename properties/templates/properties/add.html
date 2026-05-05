@@ -1,0 +1,234 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Property</title>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+}
+
+/* HEADER */
+.header {
+    background:#1e2a38;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.back-btn {
+    background:#22c55e;
+    color:white;
+    padding:8px 14px;
+    text-decoration:none;
+    border-radius:6px;
+}
+
+/* LAYOUT */
+.container {
+    display:flex;
+    height:calc(100vh - 60px);
+}
+
+/* SIDEBAR FORM */
+.sidebar {
+    width:320px;
+    background:white;
+    padding:20px;
+    box-shadow:2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar h3 {
+    margin-bottom:10px;
+}
+
+.sidebar input {
+    width:100%;
+    padding:8px;
+    margin:8px 0;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+/* BUTTON */
+.btn {
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:6px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+.btn:hover {
+    background:#16a34a;
+}
+
+/* MAP */
+#map {
+    flex:1;
+}
+
+/* PRICE BOX */
+#pricePreview {
+    background:#eef;
+    font-weight:bold;
+}
+.top-section {
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+ <div class="top-section">
+<div class="header">
+    <h2>📍 Add Property</h2>
+    <a href="/" class="back-btn">← Back</a>
+</div>
+</div>
+
+<div class="container">
+
+    <!-- FORM -->
+    <div class="sidebar">
+        <h3>Property Details</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input name="name" placeholder="Property Name">
+
+            <input name="latitude" id="lat" placeholder="Latitude" readonly>
+            <input name="longitude" id="lng" placeholder="Longitude" readonly>
+
+            <input name="area" id="area" placeholder="Area (sqft)">
+
+            <!-- Predicted Price -->
+            <input id="pricePreview" placeholder="Predicted Price" readonly>
+
+            <!-- Hidden field to save -->
+            <input type="hidden" name="price" id="priceHidden">
+
+            <button type="submit" class="btn">Save Property</button>
+        </form>
+    </div>
+
+    <!-- MAP -->
+    <div id="map"></div>
+
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+var map = L.map('map').setView([22.9734, 78.6569], 5);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(map);
+
+let marker = null;
+
+/* ===== MAIN FUNCTION ===== */
+async function updateMarker(lat, lng) {
+    const area = document.getElementById("area").value;
+    const name = document.querySelector("[name='name']").value || "New Property";
+
+    // ✅ ALWAYS show marker
+    if (!marker) {
+        marker = L.marker([lat, lng]).addTo(map);
+    } else {
+        marker.setLatLng([lat, lng]);
+    }
+
+    // If no area → show basic popup
+    if (!area) {
+        marker.bindPopup(`
+            🏡 <b>${name}</b><br>
+            📍 Location selected
+        `).openPopup();
+        return;
+    }
+
+    // 🔥 Predict price only if area exists
+    try {
+        const res = await fetch(`/predict?area=${area}&lat=${lat}&lng=${lng}`);
+        const data = await res.json();
+
+        if (data.price) {
+            document.getElementById("pricePreview").value = "₹ " + data.price;
+            document.getElementById("priceHidden").value = data.price;
+
+            // 💎 MODERN POPUP
+            marker.bindPopup(`
+            <div style="
+                font-family: Arial;
+                padding:10px;
+                border-radius:10px;
+                box-shadow:0 4px 10px rgba(0,0,0,0.15);
+                background:white;
+                min-width:160px;
+            ">
+                <div style="font-weight:bold; font-size:15px;">
+                    🏡 ${name}
+                </div>
+
+                <div style="color:#16a34a; margin-top:5px;">
+                    💰 ₹ ${data.price}
+                </div>
+
+                <div style="font-size:12px; color:#555;">
+                    📐 ${area} sqft
+                </div>
+
+                <div style="font-size:11px; color:#999; margin-top:4px;">
+                    📍 Selected Location
+                </div>
+            </div>
+            `).openPopup();
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+/* ===== MAP CLICK ===== */
+map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+
+    document.getElementById("lat").value = lat;
+    document.getElementById("lng").value = lng;
+
+    updateMarker(lat, lng);
+});
+
+/* ===== AREA CHANGE ===== */
+document.getElementById("area").addEventListener("input", function() {
+    const lat = document.getElementById("lat").value;
+    const lng = document.getElementById("lng").value;
+
+    if (lat && lng) {
+        updateMarker(lat, lng);
+    }
+});
+</script>
+
+</body>
+</html>

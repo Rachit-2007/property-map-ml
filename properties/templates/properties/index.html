@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Property Map</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<!-- Marker Cluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'properties/css/style.css' %}">
+
+</head>
+
+<body>
+
+<div class="top-section">    
+<!-- HEADER -->
+<div class="header">
+    <h2>🏠 Property Map</h2>
+    <a href="/add/" class="add-btn">+ Add Property</a>
+</div>
+<div class="stats-bar">
+    <div class="stat-card">
+        <div>📈 Max Price</div>
+        <b id="maxPriceStat">₹0</b>
+    </div>
+
+    <div class="stat-card">
+        <div>📉 Min Price</div>
+        <b id="minPriceStat">₹0</b>
+    </div>
+
+    <div class="stat-card">
+        <div>📊 Avg Price</div>
+        <b id="avgPriceStat">₹0</b>
+    </div>
+
+    <div class="stat-card">
+        <div>💰 Total Value</div>
+        <b id="totalPriceStat">₹0</b>
+    </div>
+</div>
+</div>
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+    <h3>Search</h3>
+
+    <input id="search" placeholder="Search by name...">
+    <input id="minPrice" placeholder="Min Price">
+    <input id="maxPrice" placeholder="Max Price">
+
+    <div id="propertyList">
+        {% for p in properties %}
+        <div class="card"
+             data-id="{{p.id}}"
+             data-lat="{{p.latitude}}"
+             data-lng="{{p.longitude}}"
+             data-name="{{p.name}}"
+             data-price="{{p.price}}">
+
+            <div class="card-content">
+                <div class="title">{{p.name}}</div>
+                <div class="price">₹{{p.price}}</div>
+            </div>
+
+            <a href="/delete/{{p.id}}/" class="delete-link">
+                Delete
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+    <!-- MAP -->
+    <div id="map"></div>
+
+</div>
+
+<!-- JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+// ===== MAP =====
+var map = L.map('map').setView([22.9734, 78.6569], 5);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(map);
+
+// ===== CLUSTER =====
+var markers = L.markerClusterGroup();
+
+var data = [
+{% for p in properties %}
+{
+    name: "{{p.name}}",
+    lat: {{p.latitude}},
+    lng: {{p.longitude}},
+    price: {{p.price}}
+},
+{% endfor %}
+];
+
+// Add markers
+data.forEach(p => {
+    var marker = L.marker([p.lat, p.lng]).bindPopup(`
+<div style="
+    font-family: Arial;
+    padding:10px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+    background:white;
+    min-width:160px;
+">
+    <div style="font-weight:bold; font-size:15px;">
+        🏡 ${p.name}
+    </div>
+
+    <div style="color:#16a34a; margin-top:5px;">
+        💰 ₹ ${p.price}
+    </div>
+
+    <div style="font-size:12px; color:#555;">
+        📍 Saved Property
+    </div>
+
+    <div style="font-size:11px; color:#f59e0b; margin-top:4px;">
+        ✨ Verified Listing
+    </div>
+</div>
+`);
+    markers.addLayer(marker);
+});
+
+map.addLayer(markers);
+
+
+// ===== SEARCH + FILTER =====
+const searchInput = document.getElementById("search");
+const minInput = document.getElementById("minPrice");
+const maxInput = document.getElementById("maxPrice");
+
+function filterProperties() {
+    const search = searchInput.value.toLowerCase();
+    const min = parseFloat(minInput.value) || 0;
+    const max = parseFloat(maxInput.value) || Infinity;
+
+    document.querySelectorAll(".card").forEach(card => {
+      
+        const name = card.dataset.name.toLowerCase();
+        const price = parseFloat(card.dataset.price);
+
+        if (name.includes(search) && price >= min && price <= max) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+
+searchInput.addEventListener("input", filterProperties);
+minInput.addEventListener("input", filterProperties);
+maxInput.addEventListener("input", filterProperties);
+
+function calculateStats() {
+    if (data.length === 0) return;
+
+    let prices = data.map(p => p.price);
+
+    let max = Math.max(...prices);
+    let min = Math.min(...prices);
+    let total = prices.reduce((a, b) => a + b, 0);
+    let avg = Math.round(total / prices.length);
+
+    document.getElementById("maxPriceStat").innerText = "₹ " + max;
+    document.getElementById("minPriceStat").innerText = "₹ " + min;
+    document.getElementById("avgPriceStat").innerText = "₹ " + avg;
+    document.getElementById("totalPriceStat").innerText = "₹ " + total;
+}
+
+// run on page load
+calculateStats();
+</script>
+
+</body>
+</html>
