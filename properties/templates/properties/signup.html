@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body{
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            background:
+            linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+            url('https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1470&auto=format&fit=crop');
+
+            background-size:cover;
+            background-position:center;
+            overflow:hidden;
+        }
+
+        .auth-card{
+            width:430px;
+            padding:45px;
+
+            border-radius:25px;
+
+            background:rgba(255,255,255,0.12);
+
+            backdrop-filter:blur(18px);
+
+            border:1px solid rgba(255,255,255,0.2);
+
+            box-shadow:0 8px 32px rgba(0,0,0,0.35);
+
+            color:white;
+
+            animation:fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn{
+
+            from{
+                opacity:0;
+                transform:translateY(30px);
+            }
+
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        .logo{
+            text-align:center;
+            font-size:50px;
+            margin-bottom:10px;
+        }
+
+        h1{
+            text-align:center;
+            margin-bottom:10px;
+            font-size:34px;
+            font-weight:600;
+        }
+
+        .subtitle{
+            text-align:center;
+            margin-bottom:35px;
+            color:#e5e7eb;
+            font-size:15px;
+        }
+
+        .input-group{
+            margin-bottom:20px;
+        }
+
+        .input-group input{
+            width:100%;
+            padding:16px;
+
+            border:none;
+
+            border-radius:14px;
+
+            background:rgba(255,255,255,0.18);
+
+            color:white;
+
+            font-size:16px;
+
+            outline:none;
+
+            transition:0.3s;
+        }
+
+        .input-group input::placeholder{
+            color:#f3f4f6;
+        }
+
+        .input-group input:focus{
+            background:rgba(255,255,255,0.25);
+            transform:scale(1.02);
+        }
+
+        button{
+            width:100%;
+            padding:16px;
+
+            border:none;
+
+            border-radius:14px;
+
+            background:linear-gradient(135deg,#2563eb,#4f46e5);
+
+            color:white;
+
+            font-size:17px;
+
+            font-weight:600;
+
+            cursor:pointer;
+
+            transition:0.3s;
+        }
+
+        button:hover{
+            transform:translateY(-2px);
+
+            box-shadow:0 10px 20px rgba(37,99,235,0.4);
+        }
+
+        .bottom-text{
+            margin-top:25px;
+            text-align:center;
+            color:#f3f4f6;
+            font-size:15px;
+        }
+
+        .bottom-text a{
+            color:white;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
+        .bottom-text a:hover{
+            text-decoration:underline;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="auth-card">
+
+    <div class="logo">🏡</div>
+
+    <h1>Create Account</h1>
+
+    <p class="subtitle">
+        Signup to access your property dashboard
+    </p>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="input-group">
+            <input type="text"
+                   name="username"
+                   placeholder="Enter Username"
+                   required>
+        </div>
+
+        <div class="input-group">
+            <input type="email"
+                   name="email"
+                   placeholder="Enter Email"
+                   required>
+        </div>
+
+        <div class="input-group">
+            <input type="password"
+                   name="password"
+                   placeholder="Enter Password"
+                   required>
+        </div>
+
+        <button type="submit">
+            Create Account
+        </button>
+
+    </form>
+
+    <p class="bottom-text">
+        Already have an account?
+        <a href="{% url 'login' %}">
+            Login
+        </a>
+    </p>
+
+</div>
+
+</body>
+</html>

@@ -17,6 +17,6 @@ A full-stack Django project where users can:
 ## ▶️ Run Locally
 
 ```bash
-git clone https://github.com/rachit-2007/property-map-ml.git
+git clone https://github.com/Rachit-2007/property-map-ml.git
 cd property_project
 python manage.py runserver
