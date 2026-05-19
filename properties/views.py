@@ -100,7 +100,7 @@ def login_view(request):
             return redirect("home")
 
         else:
-            messages.error(request, "Invalid credentials")
+            messages.error(request, "Invalid username or password")
 
     return render(request, "properties/login.html")
 
