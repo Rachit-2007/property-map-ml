@@ -116,9 +116,13 @@
                 <div class="price">₹{{p.price}}</div>
             </div>
 
-            <a href="/delete/{{p.id}}/" class="delete-link">
-                Delete
-            </a>
+        {% if request.user.is_superuser %}
+
+<a href="/delete/{{p.id}}/" class="delete-link">
+    Delete
+</a>
+
+{% endif %}
         </div>
         {% endfor %}
     </div>

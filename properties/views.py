@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.http import HttpResponseForbidden
 
 @login_required(login_url='login')
 def index(request):
@@ -34,9 +35,17 @@ def add_property(request):
 
     return render(request, 'properties/add.html')
 
+
+@login_required(login_url='login')
 def delete_property(request, id):
+
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only admin can delete properties")
+
     prop = get_object_or_404(Property, id=id)
+
     prop.delete()
+
     return redirect('home')
 
 def predict(request):
